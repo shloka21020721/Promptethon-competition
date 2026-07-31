@@ -1,0 +1,198 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Study Planner</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- jsPDF for PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Background Animated Glows -->
+    <div class="bg-glow glow-1"></div>
+    <div class="bg-glow glow-2"></div>
+
+    <!-- Header / Navbar -->
+    <header class="glass-nav">
+        <div class="logo">
+            <i class="fa-solid fa-brain-circuit"></i>
+            <span>AI Study Planner</span>
+        </div>
+        <div class="nav-controls">
+            <button id="themeToggle" class="icon-btn" aria-label="Toggle Theme">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container">
+        <!-- Landing Hero Section -->
+        <section class="hero">
+            <h1>Turn your syllabus into a <span class="gradient-text">personalized study schedule.</span></h1>
+            <p class="subtitle">Leverage intelligent scheduling to master weak topics, plan revisions, and crush your exams.</p>
+        </section>
+
+        <!-- Quote of the Day Box -->
+        <div class="glass-card quote-card">
+            <i class="fa-solid fa-quote-left quote-icon"></i>
+            <div class="quote-content">
+                <p id="quoteText">Loading motivation...</p>
+                <span id="quoteAuthor"></span>
+            </div>
+        </div>
+
+        <!-- Main Workspace Grid -->
+        <div class="workspace-grid">
+            <!-- Input Form Section -->
+            <section class="glass-card form-section">
+                <h2><i class="fa-solid fa-sliders"></i> Plan Configuration</h2>
+                <form id="studyForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="startDate">Today's Date</label>
+                            <input type="date" id="startDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="examDate">Exam Date</label>
+                            <input type="date" id="examDate" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dailyHours">Daily Available Study Hours</label>
+                        <input type="number" id="dailyHours" min="1" max="24" value="4" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="topics">Topics / Syllabus (One per line)</label>
+                        <textarea id="topics" rows="4" placeholder="Calculus&#10;Linear Algebra&#10;Differential Equations&#10;Probability & Statistics" required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="weakTopics">Weak Topics (Optional, comma-separated)</label>
+                            <input type="text" id="weakTopics" placeholder="Linear Algebra, Probability">
+                        </div>
+                        <div class="form-group">
+                            <label for="strongTopics">Strong Topics (Optional, comma-separated)</label>
+                            <input type="text" id="strongTopics" placeholder="Calculus">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="generateBtn">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Study Plan
+                    </button>
+                </form>
+            </section>
+
+            <!-- Sidebar / Tools Section -->
+            <aside class="sidebar-section">
+                <!-- Pomodoro Timer -->
+                <div class="glass-card timer-card">
+                    <h3><i class="fa-solid fa-stopwatch"></i> Focus Timer</h3>
+                    <div class="timer-display" id="timerDisplay">25:00</div>
+                    <div class="timer-status" id="timerStatus">Ready to Focus</div>
+                    <div class="timer-controls">
+                        <button id="timerStart" class="btn-sm"><i class="fa-solid fa-play"></i> Start</button>
+                        <button id="timerPause" class="btn-sm" disabled><i class="fa-solid fa-pause"></i> Pause</button>
+                        <button id="timerReset" class="btn-sm"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Dashboard Section (Hidden by default) -->
+        <section id="dashboardSection" class="dashboard-section hidden">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-chart-pie"></i> Study Dashboard</h2>
+                <div class="export-actions">
+                    <button id="printBtn" class="btn-secondary"><i class="fa-solid fa-print"></i> Print</button>
+                    <button id="pdfBtn" class="btn-secondary"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+                </div>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="glass-card metric-card">
+                    <i class="fa-solid fa-calendar-day"></i>
+                    <div>
+                        <span class="metric-value" id="statDays">0</span>
+                        <span class="metric-label">Days Remaining</span>
+                    </div>
+                </div>
+                <div class="glass-card metric-card">
+                    <i class="fa-solid fa-clock"></i>
+                    <div>
+                        <span class="metric-value" id="statHours">0</span>
+                        <span class="metric-label">Total Study Hours</span>
+                    </div>
+                </div>
+                <div class="glass-card metric-card">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <div>
+                        <span class="metric-value" id="statCompleted">0</span>
+                        <span class="metric-label">Tasks Completed</span>
+                    </div>
+                </div>
+                <div class="glass-card metric-card">
+                    <i class="fa-solid fa-list-check"></i>
+                    <div>
+                        <span class="metric-value" id="statLeft">0</span>
+                        <span class="metric-label">Tasks Left</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="glass-card progress-card">
+                <div class="progress-info">
+                    <span>Overall Progress</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="progressBarFill"></div>
+                </div>
+            </div>
+
+            <!-- Schedule Table -->
+            <div class="glass-card table-card">
+                <h3><i class="fa-solid fa-calendar-days"></i> Your Master Schedule</h3>
+                <div class="table-responsive">
+                    <table id="scheduleTable">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Topic</th>
+                                <th>Study Hours</th>
+                                <th>Task</th>
+                                <th>Revision</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scheduleBody">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 AI Study Planner. Built for success.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
